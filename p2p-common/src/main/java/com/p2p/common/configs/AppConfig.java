@@ -1,10 +1,9 @@
 package com.p2p.common.configs;
 
+import com.p2p.common.locales.GlobalLocaleResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.LocaleResolver;
-
-import com.p2p.common.locales.GlobalLocaleResolver;
 
 /**
  * Declares application-level Spring configuration beans.
@@ -18,13 +17,13 @@ import com.p2p.common.locales.GlobalLocaleResolver;
 @Configuration
 public class AppConfig {
 
-    /**
-     * Creates the locale resolver bean for handling Servlet request locales.
-     *
-     * @return the application locale resolver
-     */
-    @Bean
-    public LocaleResolver localeResolver() {
-        return new GlobalLocaleResolver();
-    }
+  /**
+   * Creates the locale resolver bean for handling Servlet request locales.
+   *
+   * @return the application locale resolver
+   */
+  @Bean
+  public LocaleResolver localeResolver() {
+    return new GlobalLocaleResolver();
+  }
 }

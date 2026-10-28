@@ -11,13 +11,13 @@ package com.p2p.common.constants;
  */
 public final class HeaderConstant {
 
-    private HeaderConstant() {
-        // prevent installation
-    }
+  private HeaderConstant() {
+    // prevent installation
+  }
 
-    /** HTTP header name used to propagate a correlation identifier. */
-    public static final String CORRELATION_ID_HEADER = "P2P-X-Correlation-Id";
+  /** HTTP header name used to propagate a correlation identifier. */
+  public static final String CORRELATION_ID_HEADER = "P2P-X-Correlation-Id";
 
-    /** HTTP header name used to specify the preferred request language. */
-    public static final String ACCEPT_LANG_HEADER = "P2P-X-Accept-Language";
+  /** HTTP header name used to specify the preferred request language. */
+  public static final String ACCEPT_LANG_HEADER = "P2P-X-Accept-Language";
 }

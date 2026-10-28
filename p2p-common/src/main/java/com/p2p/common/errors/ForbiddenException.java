@@ -14,8 +14,8 @@ public class ForbiddenException extends BusinessException {
   /**
    * Creates a forbidden exception with the specified message.
    *
-   * @param errorCode an unused legacy parameter; the error code is always
-   *     {@link ErrorCode#FORBIDDEN}
+   * @param errorCode an unused legacy parameter; the error code is always {@link
+   *     ErrorCode#FORBIDDEN}
    * @param message the detail message for the exception
    */
   public ForbiddenException(ErrorCode errorCode, String message) {

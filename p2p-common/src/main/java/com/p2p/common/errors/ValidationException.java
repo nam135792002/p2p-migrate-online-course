@@ -14,8 +14,8 @@ public class ValidationException extends BusinessException {
   /**
    * Creates a validation exception with the specified message.
    *
-   * @param errorCode an unused legacy parameter; the error code is always
-   *     {@link ErrorCode#VALIDATION_FAILED}
+   * @param errorCode an unused legacy parameter; the error code is always {@link
+   *     ErrorCode#VALIDATION_FAILED}
    * @param message the detail message for the exception
    */
   public ValidationException(ErrorCode errorCode, String message) {

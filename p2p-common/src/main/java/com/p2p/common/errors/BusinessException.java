@@ -13,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 public class BusinessException extends RuntimeException {
-  
+
   /** The code describing the type of business error. */
   private final ErrorCode errorCode;
 

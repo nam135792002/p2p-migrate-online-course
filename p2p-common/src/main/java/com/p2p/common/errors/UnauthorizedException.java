@@ -14,8 +14,8 @@ public class UnauthorizedException extends BusinessException {
   /**
    * Creates an unauthorized exception with the specified message.
    *
-   * @param errorCode an unused legacy parameter; the error code is always
-   *     {@link ErrorCode#UNAUTHORIZED}
+   * @param errorCode an unused legacy parameter; the error code is always {@link
+   *     ErrorCode#UNAUTHORIZED}
    * @param message the detail message for the exception
    */
   public UnauthorizedException(ErrorCode errorCode, String message) {

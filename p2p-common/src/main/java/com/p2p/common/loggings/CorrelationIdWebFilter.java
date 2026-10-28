@@ -3,6 +3,7 @@ package com.p2p.common.loggings;
 import com.p2p.common.constants.HeaderConstant;
 import com.p2p.common.constants.LoggingConstant;
 import com.p2p.common.utils.StringUtils;
+import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
@@ -10,8 +11,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 /**
  * Propagates a correlation identifier through reactive HTTP requests.
@@ -31,40 +30,42 @@ import java.util.UUID;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 public class CorrelationIdWebFilter implements WebFilter, Ordered {
 
-    /**
-     * Returns the highest precedence so this filter can process requests early.
-     *
-     * @return the highest precedence order value
-     */
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
+  /**
+   * Returns the highest precedence so this filter can process requests early.
+   *
+   * @return the highest precedence order value
+   */
+  @Override
+  public int getOrder() {
+    return Ordered.HIGHEST_PRECEDENCE;
+  }
 
-    /**
-     * Propagates the request correlation ID and delegates processing to the remaining filter chain.
-     *
-     * <p>A blank or missing inbound ID is replaced with a generated UUID. The selected ID is added
-     * to the response header, the mutated request header, and the Reactor context.
-     *
-     * @param exchange the current server web exchange
-     * @param chain the remaining web filter chain
-     * @return a {@link Mono} that completes when downstream request processing completes
-     */
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String inbound =
-                exchange.getRequest().getHeaders().getFirst(HeaderConstant.CORRELATION_ID_HEADER);
-        String correlationId = StringUtils.isBlank(inbound) ? UUID.randomUUID().toString() : inbound;
+  /**
+   * Propagates the request correlation ID and delegates processing to the remaining filter chain.
+   *
+   * <p>A blank or missing inbound ID is replaced with a generated UUID. The selected ID is added to
+   * the response header, the mutated request header, and the Reactor context.
+   *
+   * @param exchange the current server web exchange
+   * @param chain the remaining web filter chain
+   * @return a {@link Mono} that completes when downstream request processing completes
+   */
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    String inbound =
+        exchange.getRequest().getHeaders().getFirst(HeaderConstant.CORRELATION_ID_HEADER);
+    String correlationId = StringUtils.isBlank(inbound) ? UUID.randomUUID().toString() : inbound;
 
-        exchange.getResponse().getHeaders().set(HeaderConstant.CORRELATION_ID_HEADER, correlationId);
+    exchange.getResponse().getHeaders().set(HeaderConstant.CORRELATION_ID_HEADER, correlationId);
 
-        ServerWebExchange mutated =
-                exchange
-                        .mutate()
-                        .request(r -> r.header(HeaderConstant.CORRELATION_ID_HEADER, correlationId))
-                        .build();
+    ServerWebExchange mutated =
+        exchange
+            .mutate()
+            .request(r -> r.header(HeaderConstant.CORRELATION_ID_HEADER, correlationId))
+            .build();
 
-        return chain.filter(mutated).contextWrite(ctw -> ctw.put(LoggingConstant.MDC_TRACE_ID, correlationId));
-    }
+    return chain
+        .filter(mutated)
+        .contextWrite(ctw -> ctw.put(LoggingConstant.MDC_TRACE_ID, correlationId));
+  }
 }
