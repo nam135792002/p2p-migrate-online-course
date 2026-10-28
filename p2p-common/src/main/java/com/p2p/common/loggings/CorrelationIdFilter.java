@@ -1,20 +1,20 @@
 package com.p2p.common.loggings;
 
+import com.p2p.common.constants.HeaderConstant;
 import com.p2p.common.constants.LoggingConstant;
 import com.p2p.common.utils.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.UUID;
 import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.UUID;
 
 /**
  * Servlet filter responsible for managing correlation IDs across HTTP requests.
@@ -51,14 +51,14 @@ public class CorrelationIdFilter extends OncePerRequestFilter implements Ordered
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String correlationId = request.getHeader(LoggingConstant.CORRELATION_ID_HEADER);
+    String correlationId = request.getHeader(HeaderConstant.CORRELATION_ID_HEADER);
     if (StringUtils.isBlank(correlationId)) {
       correlationId = UUID.randomUUID().toString();
     }
 
     try {
       MDC.put(LoggingConstant.MDC_TRACE_ID, correlationId);
-      response.setHeader(LoggingConstant.CORRELATION_ID_HEADER, correlationId);
+      response.setHeader(HeaderConstant.CORRELATION_ID_HEADER, correlationId);
       filterChain.doFilter(request, response);
     } finally {
       MDC.remove(LoggingConstant.MDC_TRACE_ID);

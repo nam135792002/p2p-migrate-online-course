@@ -14,8 +14,8 @@ public class ResourceNotFoundException extends BusinessException {
   /**
    * Creates a resource-not-found exception with the specified message.
    *
-   * @param errorCode an unused legacy parameter; the error code is always
-   *     {@link ErrorCode#RESOURCE_NOT_FOUND}
+   * @param errorCode an unused legacy parameter; the error code is always {@link
+   *     ErrorCode#RESOURCE_NOT_FOUND}
    * @param message the detail message for the exception
    */
   public ResourceNotFoundException(ErrorCode errorCode, String message) {
@@ -25,8 +25,8 @@ public class ResourceNotFoundException extends BusinessException {
   /**
    * Creates a resource-not-found exception with the specified message and cause.
    *
-   * @param errorCode an unused legacy parameter; the error code is always
-   *     {@link ErrorCode#RESOURCE_NOT_FOUND}
+   * @param errorCode an unused legacy parameter; the error code is always {@link
+   *     ErrorCode#RESOURCE_NOT_FOUND}
    * @param message the detail message for the exception
    * @param cause the underlying cause of the exception
    */

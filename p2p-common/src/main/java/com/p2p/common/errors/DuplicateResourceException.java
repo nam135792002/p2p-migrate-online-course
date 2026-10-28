@@ -14,8 +14,8 @@ public class DuplicateResourceException extends BusinessException {
   /**
    * Creates a duplicate-resource exception with the specified message.
    *
-   * @param errorCode an unused legacy parameter; the error code is always
-   *     {@link ErrorCode#DUPLICATE_RESOURCE}
+   * @param errorCode an unused legacy parameter; the error code is always {@link
+   *     ErrorCode#DUPLICATE_RESOURCE}
    * @param message the detail message for the exception
    */
   public DuplicateResourceException(ErrorCode errorCode, String message) {
