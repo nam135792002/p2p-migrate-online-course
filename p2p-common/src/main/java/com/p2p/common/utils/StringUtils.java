@@ -18,12 +18,12 @@ public final class StringUtils {
   }
 
   /**
-   * Checks whether the given string is null.
+   * Checks whether the given value is null.
    *
-   * @param value the string to check
-   * @return {@code true} if the string is null, otherwise {@code false}
+   * @param value the value to check
+   * @return {@code true} if the value is null, otherwise {@code false}
    */
-  public static boolean isNull(String value) {
+  public static boolean isNull(Object value) {
     return Objects.isNull(value);
   }
 
@@ -31,17 +31,17 @@ public final class StringUtils {
    * Checks whether the given string is null or empty.
    *
    * @param value the string to check
-   * @return {@code true} if the string is null or empty, otherwise {@code false}
+   * @return {@code true} if the string is null or has no characters, otherwise {@code false}
    */
   public static boolean isNullOrEmpty(String value) {
     return isNull(value) || value.isEmpty();
   }
 
   /**
-   * Checks whether the given string is null, empty, or blank.
+   * Checks whether the given string is null or blank.
    *
    * @param value the string to check
-   * @return {@code true} if the string is null or blank, otherwise {@code false}
+   * @return {@code true} if the string is null or contains only whitespace, otherwise {@code false}
    */
   public static boolean isBlank(String value) {
     return isNull(value) || value.isBlank();

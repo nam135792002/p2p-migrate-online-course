@@ -1,5 +1,6 @@
 package com.p2p.common.loggings;
 
+import com.p2p.common.constants.HeaderConstant;
 import com.p2p.common.constants.LoggingConstant;
 import com.p2p.common.utils.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -53,15 +54,15 @@ public class CorrelationIdWebFilter implements WebFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String inbound =
-                exchange.getRequest().getHeaders().getFirst(LoggingConstant.CORRELATION_ID_HEADER);
+                exchange.getRequest().getHeaders().getFirst(HeaderConstant.CORRELATION_ID_HEADER);
         String correlationId = StringUtils.isBlank(inbound) ? UUID.randomUUID().toString() : inbound;
 
-        exchange.getResponse().getHeaders().set(LoggingConstant.CORRELATION_ID_HEADER, correlationId);
+        exchange.getResponse().getHeaders().set(HeaderConstant.CORRELATION_ID_HEADER, correlationId);
 
         ServerWebExchange mutated =
                 exchange
                         .mutate()
-                        .request(r -> r.header(LoggingConstant.CORRELATION_ID_HEADER, correlationId))
+                        .request(r -> r.header(HeaderConstant.CORRELATION_ID_HEADER, correlationId))
                         .build();
 
         return chain.filter(mutated).contextWrite(ctw -> ctw.put(LoggingConstant.MDC_TRACE_ID, correlationId));
