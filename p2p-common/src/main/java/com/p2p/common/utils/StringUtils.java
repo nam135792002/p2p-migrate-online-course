@@ -1,9 +1,10 @@
 package com.p2p.common.utils;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Provides common null-safe checks for string values.
+ * Provides common null-safe string checks and UUID validation.
  *
  * <p>All methods are static and this class is not intended to be instantiated.
  *
@@ -45,5 +46,21 @@ public final class StringUtils {
    */
   public static boolean isBlank(String value) {
     return isNull(value) || value.isBlank();
+  }
+
+  /**
+   * Checks whether the value can be parsed as a UUID.
+   *
+   * @param value the string to parse as a UUID
+   * @return {@code true} if parsing succeeds, or {@code false} if the value is not a valid UUID
+   * @throws NullPointerException if {@code value} is null
+   */
+  public static boolean isValidUuid(String value) {
+    try {
+      UUID.fromString(value);
+      return true;
+    } catch (IllegalArgumentException exception) {
+      return false;
+    }
   }
 }
