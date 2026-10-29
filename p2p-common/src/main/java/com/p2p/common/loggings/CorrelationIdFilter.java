@@ -52,8 +52,11 @@ public class CorrelationIdFilter extends OncePerRequestFilter implements Ordered
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     String correlationId = request.getHeader(HeaderConstant.CORRELATION_ID_HEADER);
-    if (StringUtils.isBlank(correlationId)) {
+    if (StringUtils.isBlank(correlationId) || !StringUtils.isValidUuid(correlationId)) {
       correlationId = UUID.randomUUID().toString();
+    } else {
+        // Normalize to a canonical UUID representation.
+        correlationId = UUID.fromString(correlationId).toString();
     }
 
     try {

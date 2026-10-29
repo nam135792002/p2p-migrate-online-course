@@ -54,7 +54,10 @@ public class CorrelationIdWebFilter implements WebFilter, Ordered {
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
     String inbound =
         exchange.getRequest().getHeaders().getFirst(HeaderConstant.CORRELATION_ID_HEADER);
-    String correlationId = StringUtils.isBlank(inbound) ? UUID.randomUUID().toString() : inbound;
+    String correlationId =
+        StringUtils.isBlank(inbound) || StringUtils.isValidUuid(inbound)
+            ? UUID.randomUUID().toString()
+            : inbound;
 
     exchange.getResponse().getHeaders().set(HeaderConstant.CORRELATION_ID_HEADER, correlationId);
 
