@@ -55,8 +55,8 @@ public class CorrelationIdFilter extends OncePerRequestFilter implements Ordered
     if (StringUtils.isBlank(correlationId) || !StringUtils.isValidUuid(correlationId)) {
       correlationId = UUID.randomUUID().toString();
     } else {
-        // Normalize to a canonical UUID representation.
-        correlationId = UUID.fromString(correlationId).toString();
+      // Normalize to a canonical UUID representation.
+      correlationId = UUID.fromString(correlationId).toString();
     }
 
     try {
