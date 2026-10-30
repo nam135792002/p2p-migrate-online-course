@@ -22,7 +22,20 @@ pipeline {
 
         stage('Checkstyle') {
             steps {
-                sh 'mvn -B -pl p2p-common checkstyle:check'
+                sh '''
+                    mvn -B -pl p2p-common \
+                        checkstyle:check \
+                        -Dcheckstyle.consoleOutput=true
+                '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts(
+                        artifacts: 'p2p-common/target/checkstyle-result.xml',
+                        allowEmptyArchive: true
+                    )
+                }
             }
         }
 
