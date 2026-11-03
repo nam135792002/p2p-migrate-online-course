@@ -48,7 +48,7 @@ public final class StringUtils {
     return isNull(value) || value.isBlank();
   }
 
-  
+  //kkkkk
   public static boolean isValidUuid(String value) {
     try {
       UUID.fromString(value);
