@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -14,16 +15,16 @@ pipeline {
             }
         }
 
-        stage('Spotless') {
+        stage('Spotless - Full Project') {
             steps {
-                sh 'mvn -B -pl p2p-common spotless:check'
+                sh 'mvn -B -f pom.xml spotless:check'
             }
         }
 
-        stage('Checkstyle') {
+        stage('Checkstyle - Full Project') {
             steps {
                 sh '''
-                    mvn -B -pl p2p-common \
+                    mvn -B -f pom.xml \
                         checkstyle:check \
                         -Dcheckstyle.consoleOutput=true
                 '''
@@ -32,22 +33,48 @@ pipeline {
             post {
                 always {
                     archiveArtifacts(
-                        artifacts: 'p2p-common/target/checkstyle-result.xml',
+                        artifacts: '**/target/checkstyle-result.xml',
                         allowEmptyArchive: true
                     )
                 }
             }
         }
 
-        stage('SpotBugs') {
+        stage('SpotBugs - Full Project') {
             steps {
-                sh 'mvn -B -pl p2p-common compile spotbugs:check'
+                sh 'mvn -B -f pom.xml compile spotbugs:check'
             }
         }
 
-        stage('Unit Test & Build') {
+        stage('Unit Test & Build - Full Project') {
             steps {
-                sh 'mvn -B -pl p2p-common -am clean verify'
+                sh 'mvn -B -f pom.xml clean verify'
+            }
+        }
+
+        stage('Semgrep CE - Full Project') {
+            steps {
+                sh '''
+                    mkdir -p target
+
+                    semgrep scan \
+                        --config p/java \
+                        --severity ERROR \
+                        --error \
+                        --metrics=off \
+                        --json \
+                        --output target/semgrep-report.json \
+                        .
+                '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts(
+                        artifacts: 'target/semgrep-report.json',
+                        allowEmptyArchive: true
+                    )
+                }
             }
         }
     }
