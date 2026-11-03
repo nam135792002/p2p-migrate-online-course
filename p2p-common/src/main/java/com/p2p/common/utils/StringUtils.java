@@ -49,7 +49,7 @@ public final class StringUtils {
   }
 
   /**
-   * Checks whether the value can be parsed as a UUID.
+   * Checks whether the value can be parsed as a UUID
    *
    * @param value the string to parse as a UUID
    * @return {@code true} if parsing succeeds, or {@code false} if the value is not a valid UUID
