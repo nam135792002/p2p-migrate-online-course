@@ -30,14 +30,8 @@ public final class ApiResponseUtils {
     return new ApiResponse<T>(true, data, Instant.now(), null);
   }
 
-  /**
-   * Creates a failed API response containing the specified error information.
-   *
-   * @param <T> the declared type of the response data, which is absent in this failure response
-   * @param errorResponse the error information to include in the response
-   * @return a failed response containing the error information and current timestamp
-   */
   public static <T> ApiResponse<T> failure(ErrorResponse errorResponse) {
     return new ApiResponse<T>(false, null, Instant.now(), errorResponse);
   }
 }
+  
