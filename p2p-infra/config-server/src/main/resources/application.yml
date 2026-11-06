@@ -12,7 +12,7 @@ spring:
       server:
         native:
           search-locations:
-            - classpath://configs
+            - classpath:/configs
 
 management:
   endpoints:

@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
+
 PRIORITIES = {
     "1": "High",
     "2": "Medium",
@@ -33,10 +34,14 @@ def text(element, path, default=""):
 
 def classify_category(category, bug_type):
     if category:
-        return CATEGORY_LABELS.get(category, category.replace("_", " ").title())
+        return CATEGORY_LABELS.get(
+            category,
+            category.replace("_", " ").title()
+        )
 
-    # Fallback classification if XML has no category attribute.
-    if bug_type.startswith(("HRS_", "PT_", "SQL_", "XSS_", "SC_", "WEAK_")):
+    if bug_type.startswith(
+        ("HRS_", "PT_", "SQL_", "XSS_", "SC_", "WEAK_")
+    ):
         return "Security"
 
     return "Unclassified"
@@ -58,6 +63,7 @@ def main():
         return 1
 
     root = ET.parse(xml_path).getroot()
+
     bugs = []
 
     for bug in root.findall(".//BugInstance"):
@@ -66,16 +72,39 @@ def main():
         category_code = bug.get("category", "")
 
         source = bug.find(".//SourceLine")
-        source_file = source.get("sourcefile", "") if source is not None else ""
-        line = source.get("start", "") if source is not None else ""
 
-        class_name = text(bug, "./Class", "Unknown")
-        method_name = text(bug, "./Method", "")
+        source_file = (
+            source.get("sourcefile", "")
+            if source is not None else ""
+        )
+
+        line = (
+            source.get("start", "")
+            if source is not None else ""
+        )
+
+        class_element = bug.find("./Class")
+        method_element = bug.find("./Method")
+
+        class_name = (
+            class_element.get("classname", "Unknown")
+            if class_element is not None else "Unknown"
+        )
+
+        method_name = (
+            method_element.get("name", "")
+            if method_element is not None else ""
+        )
 
         bugs.append({
+            "module": bug.get("module", "Unknown"),
             "type": bug_type,
-            "category": classify_category(category_code, bug_type),
-            "priority": PRIORITIES.get(priority_code, "Unknown"),
+            "category": classify_category(
+                category_code, bug_type
+            ),
+            "priority": PRIORITIES.get(
+                priority_code, "Unknown"
+            ),
             "class": class_name,
             "method": method_name,
             "file": source_file,
@@ -83,23 +112,44 @@ def main():
             "message": bug.get("message", ""),
         })
 
-    counts = Counter(bug["priority"] for bug in bugs)
+    priority_counts = Counter(
+        bug["priority"] for bug in bugs
+    )
+
+    category_counts = Counter(
+        bug["category"] for bug in bugs
+    )
+
     rows = []
 
     for bug in bugs:
         values = [
-            bug["type"], bug["category"], bug["priority"],
-            bug["class"], bug["method"],
-            bug["file"], bug["line"], bug["message"],
+            bug["module"],
+            bug["type"],
+            bug["category"],
+            bug["priority"],
+            bug["class"],
+            bug["method"],
+            bug["file"],
+            bug["line"],
+            bug["message"],
         ]
+
         cells = "".join(
-            f"<td>{html.escape(str(value))}</td>" for value in values
+            f"<td>{html.escape(str(value))}</td>"
+            for value in values
         )
+
         rows.append(f"<tr>{cells}</tr>")
 
-    summary = " | ".join(
-        f"{name}: {counts.get(name, 0)}"
+    priority_summary = " | ".join(
+        f"{name}: {priority_counts.get(name, 0)}"
         for name in ("High", "Medium", "Low", "Experimental")
+    )
+
+    category_summary = " | ".join(
+        f"{html.escape(name)}: {count}"
+        for name, count in sorted(category_counts.items())
     )
 
     document = f"""<!DOCTYPE html>
@@ -108,49 +158,124 @@ def main():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SpotBugs Report</title>
+
 <style>
-body {{ font-family: Arial, sans-serif; margin: 24px; color: #222; }}
-h1 {{ margin-bottom: 8px; }}
-.summary {{ padding: 12px; background: #f2f4f7; margin-bottom: 16px; }}
-input {{ padding: 9px; width: min(500px, 90%); margin-bottom: 12px; }}
-table {{ border-collapse: collapse; width: 100%; font-size: 13px; }}
-th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-th {{ background: #e9edf2; position: sticky; top: 0; }}
-tr:nth-child(even) {{ background: #f8f9fb; }}
-td {{ overflow-wrap: anywhere; }}
+body {{
+    font-family: Arial, sans-serif;
+    margin: 24px;
+    color: #222;
+}}
+
+h1 {{
+    margin-bottom: 8px;
+}}
+
+.summary {{
+    padding: 12px;
+    background: #f2f4f7;
+    margin-bottom: 16px;
+    line-height: 1.8;
+}}
+
+input {{
+    padding: 9px;
+    width: min(500px, 90%);
+    margin-bottom: 12px;
+}}
+
+.table-container {{
+    overflow-x: auto;
+}}
+
+table {{
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+}}
+
+th, td {{
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}}
+
+th {{
+    background: #e9edf2;
+    position: sticky;
+    top: 0;
+}}
+
+tr:nth-child(even) {{
+    background: #f8f9fb;
+}}
+
+td {{
+    overflow-wrap: anywhere;
+}}
 </style>
 </head>
+
 <body>
+
 <h1>SpotBugs Report</h1>
+
 <div class="summary">
-Total bugs: {len(bugs)}<br>{html.escape(summary)}
+    <strong>Total bugs: {len(bugs)}</strong>
+    <p>Priority: {html.escape(priority_summary)}</p>
+    <p>Category: {category_summary or "None"}</p>
 </div>
-<input id="filter" placeholder="Filter bug type, category, priority, class..."
-       oninput="filterRows()">
+
+<input
+    id="filter"
+    placeholder="Filter module, bug type, category, priority, class..."
+    oninput="filterRows()"
+>
+
+<div class="table-container">
 <table id="bugs">
-<thead><tr>
-<th>Bug Type</th><th>Category</th><th>Priority</th>
-<th>Class</th><th>Method</th><th>Source File</th>
-<th>Line</th><th>Details</th>
-</tr></thead>
-<tbody>{''.join(rows)}</tbody>
+<thead>
+<tr>
+    <th>Module</th>
+    <th>Bug Type</th>
+    <th>Category</th>
+    <th>Priority</th>
+    <th>Class</th>
+    <th>Method</th>
+    <th>Source File</th>
+    <th>Line</th>
+    <th>Details</th>
+</tr>
+</thead>
+
+<tbody>
+{''.join(rows)}
+</tbody>
+
 </table>
+</div>
+
 <script>
 function filterRows() {{
-  const query = document.getElementById('filter').value.toLowerCase();
-  document.querySelectorAll('#bugs tbody tr').forEach(row => {{
-    row.hidden = !row.innerText.toLowerCase().includes(query);
-  }});
+    const query = document
+        .getElementById('filter')
+        .value.toLowerCase();
+
+    document.querySelectorAll('#bugs tbody tr').forEach(row => {{
+        row.hidden = !row.innerText.toLowerCase().includes(query);
+    }});
 }}
 </script>
+
 </body>
 </html>
 """
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(document, encoding="utf-8")
+
     print(f"Report generated: {output_path}")
     print(f"Total bugs: {len(bugs)}")
+
     return 0
 
 

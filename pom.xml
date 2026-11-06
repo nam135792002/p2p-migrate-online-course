@@ -17,6 +17,8 @@
     <description>P2PCoursesMicroservice</description>
     <modules>
         <module>p2p-common</module>
+        <module>p2p-infra/config-server</module>
+        <module>p2p-infra/discovery-server</module>
     </modules>
 
     <properties>

@@ -20,10 +20,13 @@
     <property name="fileNamePattern" value="module\-info\.java$"/>
   </module>
 
-  <module name="SuppressionFilter">
-    <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}"
-              default="checkstyle-suppressions.xml"/>
-    <property name="optional" value="true"/>
+  <module name="SuppressionSingleFilter">
+    <property name="files" value=".*Application\.java"/>
+    <property name="checks" value="HideUtilityClassConstructor"/>
+  </module>
+  <module name="SuppressionSingleFilter">
+    <property name="files" value=".*Application\.java"/>
+    <property name="checks" value="MissingJavadocMethod"/>
   </module>
 
   <!-- JavadocPackage disabled as requested -->

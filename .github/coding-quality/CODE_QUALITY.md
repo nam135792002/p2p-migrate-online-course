@@ -7,7 +7,7 @@ Use this document as the source of truth when checking Java code quality in this
 ## Scope and assumptions
 
 - Repository: `P2PCoursesMicroservice`
-- Initial target module: `p2p-common`
+- Scope: all Maven modules
 - Shell: Git Bash on Windows
 - Existing report generators:
   - `config/checkstyles/generate-checkstyle-report.py`
@@ -50,8 +50,12 @@ Run from the repository root in Git Bash:
 bash config/scripts/checkstyle-report.sh
 ```
 
-The script runs the configured Maven Checkstyle goal and generates
-`p2p-common/target/checkstyle-report.html` from the XML report.
+The script runs the configured Maven Checkstyle goal, merges module XML
+reports into `target/checkstyle-merged.xml`, and writes the HTML report to
+`target/checkstyle-report.html`. It generates the report from available XML
+results after Maven attempts all reactor modules (`--fail-at-end`), even if
+some modules fail. In that case the script still exits with Maven's non-zero
+status.
 
 ### 3. SpotBugs — potential bugs and security findings
 
@@ -68,14 +72,17 @@ Run from the repository root in Git Bash:
 bash config/scripts/spotbug-check.sh
 ```
 
-The script runs the configured SpotBugs Maven goal and generates
-`p2p-common/target/spotbugs-report.html` from the XML report.
+The script runs the configured SpotBugs Maven goal for all modules, merges
+module XML reports into `target/spotbugs-merged.xml`, and writes the HTML
+report to `target/spotbugs-report.html`. It continues processing reactor
+modules after a failure (`--fail-at-end`), generates a report from available
+XML results, and preserves Maven's non-zero exit status if any module fails.
 
 Open the generated reports from the repository root using:
 
 ```bash
-start p2p-common/target/checkstyle-report.html
-start p2p-common/target/spotbugs-report.html
+start target/checkstyle-report.html
+start target/spotbugs-report.html
 ```
 
 ## Execution policy
