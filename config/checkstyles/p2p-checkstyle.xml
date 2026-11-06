@@ -25,7 +25,7 @@
     <property name="checks" value="HideUtilityClassConstructor"/>
   </module>
   <module name="SuppressionSingleFilter">
-    <property name="files" value=".*DiscoveryServerApplication\.java"/>
+    <property name="files" value=".*Application\.java"/>
     <property name="checks" value="MissingJavadocMethod"/>
   </module>
 
