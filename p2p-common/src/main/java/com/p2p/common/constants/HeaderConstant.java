@@ -20,4 +20,10 @@ public final class HeaderConstant {
 
   /** HTTP header name used to specify the preferred request language. */
   public static final String ACCEPT_LANG_HEADER = "P2P-X-Accept-Language";
+
+  /** HTTP header name used to propagate the user identifier. */
+  public static final String USER_ID_HEADER = "P2P-X-User-Id";
+
+  /** HTTP header name used to propagate the user's role. */
+  public static final String USER_ROLE_HEADER = "P2P-X-User-Role";
 }

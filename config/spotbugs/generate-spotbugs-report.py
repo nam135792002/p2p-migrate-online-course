@@ -71,7 +71,9 @@ def main():
         priority_code = bug.get("priority", "3")
         category_code = bug.get("category", "")
 
-        source = bug.find(".//SourceLine")
+        source = bug.find("./SourceLine[@primary='true']")
+        if source is None:
+            source = bug.find(".//SourceLine")
 
         source_file = (
             source.get("sourcefile", "")
@@ -96,6 +98,13 @@ def main():
             if method_element is not None else ""
         )
 
+        summary = text(bug, "./ShortMessage")
+        details = text(
+            bug,
+            "./LongMessage",
+            summary or "No description provided by SpotBugs.",
+        )
+
         bugs.append({
             "module": bug.get("module", "Unknown"),
             "type": bug_type,
@@ -109,7 +118,8 @@ def main():
             "method": method_name,
             "file": source_file,
             "line": line,
-            "message": bug.get("message", ""),
+            "summary": summary,
+            "details": details,
         })
 
     priority_counts = Counter(
@@ -132,7 +142,8 @@ def main():
             bug["method"],
             bug["file"],
             bug["line"],
-            bug["message"],
+            bug["summary"],
+            bug["details"],
         ]
 
         cells = "".join(
@@ -243,6 +254,7 @@ td {{
     <th>Method</th>
     <th>Source File</th>
     <th>Line</th>
+    <th>Summary</th>
     <th>Details</th>
 </tr>
 </thead>
