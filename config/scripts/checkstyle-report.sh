@@ -13,8 +13,14 @@ echo "========================================"
 echo " Running Checkstyle for all Maven modules"
 echo "========================================"
 
-# Generate Checkstyle XML reports
-if mvn -B --fail-at-end checkstyle:checkstyle; then
+# Remove previous results so the report only includes this run.
+find . -type f \
+    -path "*/target/checkstyle-result.xml" \
+    -not -path "*/.git/*" \
+    -delete
+
+# Build reactor dependencies before running Checkstyle in each module.
+if mvn -B --fail-at-end -DskipTests compile checkstyle:checkstyle; then
     mvn_status=0
 else
     mvn_status=$?

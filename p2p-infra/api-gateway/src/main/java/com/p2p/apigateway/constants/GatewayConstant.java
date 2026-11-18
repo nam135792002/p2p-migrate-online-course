@@ -13,8 +13,9 @@ import java.util.List;
  */
 public final class GatewayConstant {
 
-  /** Prevents instantiation of this utility class. */
-  private GatewayConstant() {}
+  private GatewayConstant() {
+    // prevent installation
+  }
 
   /** Fallback message used when an unexpected error has no message. */
   public static final String DEFAULT_ERROR_MESSAGE = "An unexpected error occurred";
@@ -40,4 +41,10 @@ public final class GatewayConstant {
 
   /** Message returned when a bearer token cannot be validated. */
   public static final String MESSAGE_JWT_INVALID = "Invalid or expired token";
+
+  /** Maximum age, in seconds, for cached CORS preflight responses. */
+  public static final Long CORS_CONFIG_MAX_AGE = 3600L;
+
+  /** Order offset applied to the JWT authentication filter's precedence. */
+  public static final int ORDER_OFFSET = 10;
 }

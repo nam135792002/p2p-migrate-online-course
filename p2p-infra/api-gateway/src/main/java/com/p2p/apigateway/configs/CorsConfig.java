@@ -1,5 +1,6 @@
 package com.p2p.apigateway.configs;
 
+import com.p2p.apigateway.constants.GatewayConstant;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +33,7 @@ public class CorsConfig {
     configuration.setAllowedMethods(List.of("*"));
     configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
-    configuration.setMaxAge(3600L);
+    configuration.setMaxAge(GatewayConstant.CORS_CONFIG_MAX_AGE);
 
     UrlBasedCorsConfigurationSource url = new UrlBasedCorsConfigurationSource();
     url.registerCorsConfiguration("/**", configuration);

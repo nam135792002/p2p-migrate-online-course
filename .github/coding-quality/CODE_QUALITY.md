@@ -50,12 +50,12 @@ Run from the repository root in Git Bash:
 bash config/scripts/checkstyle-report.sh
 ```
 
-The script runs the configured Maven Checkstyle goal, merges module XML
-reports into `target/checkstyle-merged.xml`, and writes the HTML report to
-`target/checkstyle-report.html`. It generates the report from available XML
-results after Maven attempts all reactor modules (`--fail-at-end`), even if
-some modules fail. In that case the script still exits with Maven's non-zero
-status.
+The script compiles the reactor first so modules can resolve dependencies on
+other reactor modules, then runs Checkstyle with `--fail-at-end`. It removes
+prior module XML results, merges results from this run into
+`target/checkstyle-merged.xml`, and writes the HTML report to
+`target/checkstyle-report.html`. The report is generated even if some modules
+fail, and the script preserves Maven's non-zero status.
 
 ### 3. SpotBugs — potential bugs and security findings
 
