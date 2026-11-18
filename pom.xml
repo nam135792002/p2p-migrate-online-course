@@ -19,6 +19,7 @@
         <module>p2p-common</module>
         <module>p2p-infra/config-server</module>
         <module>p2p-infra/discovery-server</module>
+        <module>p2p-infra/api-gateway</module>
     </modules>
 
     <properties>
@@ -55,6 +56,12 @@
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.p2p.common</groupId>
+                <artifactId>p2p-common</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
