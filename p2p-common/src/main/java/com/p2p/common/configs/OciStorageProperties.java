@@ -16,9 +16,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "oci.object-storage")
 public record OciStorageProperties(
-    String region,
-    String namespace,
-    String bucket,
-    String configFile,
-    String profile
-) {}
+    String region, String namespace, String bucket, String configFile, String profile) {}

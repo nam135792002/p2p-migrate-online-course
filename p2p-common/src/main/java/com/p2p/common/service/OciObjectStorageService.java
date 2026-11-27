@@ -12,18 +12,17 @@ import com.p2p.common.errors.ErrorCode;
 import com.p2p.common.errors.OciObjectStorageException;
 import com.p2p.common.errors.ValidationException;
 import com.p2p.common.utils.StringUtils;
-
 import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.Objects;
+import org.apache.logging.log4j.internal.annotation.SuppressFBWarnings;
 import org.springframework.stereotype.Service;
 
 /**
- * Provides common operations for objects stored in OCI Object Storage.
+ * Provides upload, download, deletion, and existence-check operations for OCI Object Storage.
  *
- * <p>This service uses the shared Object Storage client and bucket configuration created by the
- * application configuration. The consuming application remains responsible for authorization,
- * metadata persistence, and business validation.
+ * <p>The service uses the injected OCI client and the namespace and bucket from {@link
+ * OciStorageProperties}. OCI SDK failures are exposed as {@link OciObjectStorageException}; missing
+ * objects are reported according to the operation's contract.
  *
  * @author Ringuyen
  * @version 1.0.0
@@ -32,48 +31,57 @@ import org.springframework.stereotype.Service;
 @Service
 public class OciObjectStorageService {
 
+  /** HTTP status returned by OCI when the requested object does not exist. */
+  private static final int OCI_NOT_FOUND_STATUS = 404;
+
+  /** OCI client used to execute Object Storage requests. */
   private final ObjectStorage objectStorage;
+
+  /** Namespace containing the configured Object Storage bucket. */
   private final String namespace;
+
+  /** Bucket used for all Object Storage operations in this service. */
   private final String bucket;
 
   /**
-   * Creates an OCI Object Storage service from the shared client and application properties.
+   * Creates a service using the supplied OCI client and storage configuration.
    *
-   * @param objectStorage shared OCI Object Storage client
-   * @param properties OCI Object Storage namespace and bucket configuration
+   * @param objectStorage OCI Object Storage client used for requests
+   * @param properties configuration containing the namespace and bucket to use
    */
-  public OciObjectStorageService(
-      ObjectStorage objectStorage, OciStorageProperties properties) {
-    this.objectStorage =
-        Objects.requireNonNull(objectStorage, "objectStorage must not be null");
-    Objects.requireNonNull(properties, "properties must not be null");
-
-    this.namespace = requireText(properties.namespace(), "namespace");
-    this.bucket = requireText(properties.bucket(), "bucket");
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
+      justification = "OCI ObjectStorage client is injected and shared by Spring")
+  public OciObjectStorageService(ObjectStorage objectStorage, OciStorageProperties properties) {
+    this.objectStorage = objectStorage;
+    this.namespace = properties.namespace();
+    this.bucket = properties.bucket();
   }
 
   /**
-   * Uploads an object and overwrites an existing object with the same key.
+   * Uploads the supplied content to the configured bucket.
+   *
+   * <p>An existing object with the same key is overwritten. Blank object keys or content types,
+   * null input streams, and negative content lengths are rejected before the request is sent.
    *
    * @param objectKey key of the object to upload
-   * @param inputStream object content; the caller retains ownership of this stream
+   * @param inputStream stream containing the object content
    * @param contentLength number of bytes in the content
    * @param contentType MIME type of the content
-   * @throws ValidationException if an argument is blank or invalid
-   * @throws OciObjectStorageException if OCI Object Storage rejects the upload
+   * @throws ValidationException if the object key or content type is blank, the input stream is
+   *     {@code null}, or the content length is negative
+   * @throws OciObjectStorageException if the OCI SDK reports a failure while uploading the object
    */
   public void uploadObject(
       String objectKey, InputStream inputStream, long contentLength, String contentType) {
     // Validate input
     requireText(objectKey, "objectKey");
     if (StringUtils.isNull(inputStream)) {
-      throw new ValidationException(
-          ErrorCode.VALIDATION_FAILED, "inputStream must not be null");
+      throw new ValidationException(ErrorCode.VALIDATION_FAILED, "inputStream must not be null");
     }
     if (contentLength < 0) {
       throw new ValidationException(
-          ErrorCode.VALIDATION_FAILED,
-          "contentLength must be greater than or equal to zero");
+          ErrorCode.VALIDATION_FAILED, "contentLength must be greater than or equal to zero");
     }
     requireText(contentType, "contentType");
 
@@ -99,12 +107,15 @@ public class OciObjectStorageService {
   }
 
   /**
-   * Downloads an object as a stream.
+   * Retrieves an object from the configured bucket as a stream.
+   *
+   * <p>The caller is responsible for closing the returned stream.
    *
    * @param objectKey key of the object to download
-   * @return the object content stream
-   * @throws ValidationException if the object key is blank or invalid
-   * @throws OciObjectStorageException if OCI Object Storage cannot return the object
+   * @return a stream containing the object content
+   * @throws ValidationException if the object key is blank
+   * @throws OciObjectStorageException if the object is missing or the OCI SDK reports another
+   *     failure; a missing object uses {@link ErrorCode#RESOURCE_NOT_FOUND}
    */
   public InputStream downloadObject(String objectKey) {
     requireText(objectKey, "objectKey");
@@ -120,7 +131,7 @@ public class OciObjectStorageService {
       return response.getInputStream();
     } catch (BmcException exception) {
       ErrorCode errorCode =
-          exception.getStatusCode() == 404
+          exception.getStatusCode() == OCI_NOT_FOUND_STATUS
               ? ErrorCode.RESOURCE_NOT_FOUND
               : ErrorCode.SERVICE_UNAVAILABLE;
       throw new OciObjectStorageException(
@@ -129,13 +140,14 @@ public class OciObjectStorageService {
   }
 
   /**
-   * Deletes an object.
+   * Deletes an object from the configured bucket.
    *
-   * <p>A missing object is treated as a successful deletion.
+   * <p>A 404 response from OCI is treated as a successful deletion. Other OCI SDK failures are
+   * wrapped as {@link OciObjectStorageException} with {@link ErrorCode#SERVICE_UNAVAILABLE}.
    *
    * @param objectKey key of the object to delete
-   * @throws ValidationException if the object key is blank or invalid
-   * @throws OciObjectStorageException if OCI Object Storage cannot delete the object
+   * @throws ValidationException if the object key is blank
+   * @throws OciObjectStorageException if OCI reports a failure other than 404
    */
   public void deleteObject(String objectKey) {
     requireText(objectKey, "objectKey");
@@ -147,7 +159,7 @@ public class OciObjectStorageService {
               .objectName(objectKey)
               .build());
     } catch (BmcException exception) {
-      if (exception.getStatusCode() != 404) {
+      if (exception.getStatusCode() != OCI_NOT_FOUND_STATUS) {
         throw new OciObjectStorageException(
             ErrorCode.SERVICE_UNAVAILABLE,
             "Unable to delete object from OCI Object Storage",
@@ -159,10 +171,13 @@ public class OciObjectStorageService {
   /**
    * Checks whether an object exists in the configured bucket.
    *
+   * <p>A 404 response from OCI returns {@code false}. Other OCI SDK failures are wrapped as {@link
+   * OciObjectStorageException} with {@link ErrorCode#SERVICE_UNAVAILABLE}.
+   *
    * @param objectKey key of the object to check
-   * @return {@code true} if the object exists; {@code false} if OCI returns status 404
-   * @throws ValidationException if the object key is blank or invalid
-   * @throws OciObjectStorageException if OCI Object Storage cannot check the object
+   * @return {@code true} if OCI confirms the object exists; {@code false} if OCI returns 404
+   * @throws ValidationException if the object key is blank
+   * @throws OciObjectStorageException if OCI reports a failure other than 404
    */
   public boolean objectExists(String objectKey) {
     requireText(objectKey, "objectKey");
@@ -175,7 +190,7 @@ public class OciObjectStorageService {
               .build());
       return true;
     } catch (BmcException exception) {
-      if (exception.getStatusCode() == 404) {
+      if (exception.getStatusCode() == OCI_NOT_FOUND_STATUS) {
         return false;
       }
       throw new OciObjectStorageException(
@@ -186,11 +201,9 @@ public class OciObjectStorageService {
   }
 
   private static String requireText(String value, String fieldName) {
-    if (!StringUtils.isBlank(value)) {
+    if (StringUtils.isBlank(value)) {
       throw new ValidationException(
-          ErrorCode.VALIDATION_FAILED, 
-          MessageFormat.format("{0} must not be blank", fieldName)
-        );
+          ErrorCode.VALIDATION_FAILED, MessageFormat.format("{0} must not be blank", fieldName));
     }
     return value;
   }
