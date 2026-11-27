@@ -1,0 +1,7 @@
+oci:
+  object-storage:
+    region: ap-singapore-1
+    namespace: ${OCI_NAMESPACE}
+    bucket: p2p-media
+    config-file: ${OCI_CONFIG_FILE}
+    profile: DEFAULT
